@@ -76,10 +76,11 @@ public class TilePatternController : MonoBehaviour
 
     private void SetSpacing(float value)
     {
+        spacingValueTxt.text = value  + "mm";
         value /= 10;
         targetMaterial.SetFloat(SpacingXID, value);
         targetMaterial.SetFloat(SpacingYID, value);
-        spacingValueTxt.text = value + "mm";
+        
     }
 
     private void SetRotation(float value)
