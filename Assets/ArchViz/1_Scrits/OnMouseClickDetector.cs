@@ -17,7 +17,7 @@ public class OnMouseClickDetector : MonoBehaviour
     }
 
     // on mouse click on 3D sphere, change the color of the sphere to a random color
-    private void OnMouseDown()
+    public void OnClickMaterial()
     {
        // Get material of the sphere
         Material material = GetComponent<Renderer>().material;
