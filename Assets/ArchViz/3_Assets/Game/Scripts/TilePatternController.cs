@@ -22,10 +22,14 @@ public class TilePatternController : MonoBehaviour
     [Header("Gap Color Buttons")]
     [SerializeField] private List<ColorButtonPair> colorButtons = new();
 
+    [Header("Tile Buttons")]
+    [SerializeField] private List<TileButtonPair> tileButtons = new();
+
     [Header("TileAngle Buttons")]
     [SerializeField] private Slider angleSlider;
     [SerializeField] private TMP_Text angleValueTxt;
 
+    private static readonly int TextureID = Shader.PropertyToID("_MainTex");
     private static readonly int ImageWidthID = Shader.PropertyToID("_ImageWidth");
     private static readonly int ImageHeightID = Shader.PropertyToID("_ImageHeight");
     private static readonly int SpacingXID = Shader.PropertyToID("_SpacingX");
@@ -50,7 +54,25 @@ public class TilePatternController : MonoBehaviour
 
             pair.button.onClick.AddListener(() =>
             {
-                ApplyGapColor(color);
+                SetGapColor(color);
+            });
+        }
+
+        foreach (var tileData in tileButtons)
+        {
+            
+            if (tileData.button == null)
+                continue;
+
+            float height = tileData.height;
+            float width = tileData.width;
+            Texture texture = tileData.texture;
+
+            tileData.button.onClick.AddListener(() =>
+            {
+                SetTexture(texture);
+                SetHeight(height);
+                SetWidth(width);
             });
         }
 
@@ -89,11 +111,15 @@ public class TilePatternController : MonoBehaviour
         angleValueTxt.text = value.ToString();
     }
 
-    private void ApplyGapColor(Color color)
+    private void SetGapColor(Color color)
     {
         targetMaterial.SetColor(GapColorID, color);
     }
 
+    private void SetTexture(Texture texture)
+    {
+        targetMaterial.SetTexture(TextureID, texture);
+    }
 
 
     [Serializable]
@@ -109,5 +135,17 @@ public class TilePatternController : MonoBehaviour
     {
         public Button button;
         public Color color;
+    }
+
+
+    [Serializable]
+    public class TileButtonPair
+    {
+        public Button button;
+        public Texture texture;
+
+        [Header("These values will be multiply by 100.")]
+        [Range(2, 24)] public int height;
+        [Range(2, 24)] public int width;
     }
 }

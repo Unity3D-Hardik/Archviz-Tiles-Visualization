@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Tile
-  m_Shader: {fileID: 4800000, guid: e6204428381ea1d42a00c61f4e776bc8, type: 3}
+  m_Shader: {fileID: 4800000, guid: c17ad3ed5a9f9544797b49c0cb1473d7, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -49,11 +49,15 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: a91d3eccf2faaf241a27867ec77e00fd, type: 3}
+        m_Texture: {fileID: 2800000, guid: 25a686e87daa08542a642c973926e2bf, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
         m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalMap:
+        m_Texture: {fileID: 2800000, guid: da881813db3d7264993c8bf863c7043d, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
@@ -100,9 +104,10 @@ Material:
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
-    - _ImageHeight: 0.8
-    - _ImageWidth: 0.8
+    - _ImageHeight: 0.6
+    - _ImageWidth: 1.2
     - _Metallic: 0
+    - _NormalStrength: 0.76
     - _OcclusionStrength: 1
     - _Parallax: 0.005
     - _QueueOffset: 0
@@ -110,8 +115,8 @@ Material:
     - _Rotation: 0
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
-    - _SpacingX: 1.1
-    - _SpacingY: 1.1
+    - _SpacingX: 0
+    - _SpacingY: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
