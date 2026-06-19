@@ -23,11 +23,24 @@ public class TilePatternController : MonoBehaviour
     [SerializeField] private Slider angleSlider;
     [SerializeField] private TMP_Text angleValueTxt;
 
+    [Header("Defaults")]
+    [SerializeField] private Color defaultGapColor = Color.black;
+
     private void Start()
     {
-      
-        spacingSlider.onValueChanged.AddListener(SetSpacing);
-        angleSlider.onValueChanged.AddListener(SetRotation);
+        if (tileSwapper == null)
+            tileSwapper = GetComponent<TileTextureSwapper>();
+
+        if (tileSwapper == null)
+        {
+            Debug.LogWarning("[TilePatternController] Missing TileTextureSwapper reference.", this);
+            return;
+        }
+
+        if (spacingSlider != null)
+            spacingSlider.onValueChanged.AddListener(SetSpacing);
+        if (angleSlider != null)
+            angleSlider.onValueChanged.AddListener(SetRotation);
 
         foreach (var pair in colorButtons)
         {
@@ -60,28 +73,63 @@ public class TilePatternController : MonoBehaviour
         }
 
         
-        SetSpacing(spacingSlider.value);
-        SetRotation(angleSlider.value);
+        if (spacingSlider != null)
+            SetSpacing(spacingSlider.value);
+        if (angleSlider != null)
+            SetRotation(angleSlider.value);
     }
 
     private void SetSpacing(float value)
     {
-       
+        if (spacingValueTxt != null)
+            spacingValueTxt.text = value.ToString("F1") + " mm";
+
+        if (tileSwapper != null)
+            tileSwapper.SetGapSize(value);
     }
 
     private void SetRotation(float value)
     {
-      
+        if (angleValueTxt != null)
+            angleValueTxt.text = value.ToString("F0") + " deg";
+
+        if (tileSwapper != null)
+            tileSwapper.SetRotationOnly(value);
     }
 
     private void SetGapColor(Color color)
     {
-        
+        if (tileSwapper != null)
+            tileSwapper.SetGapColor(color);
     }
 
     private void SetTexture(Texture texture)
     {
-        
+        if (tileSwapper == null || texture == null)
+            return;
+
+        Texture2D texture2D = texture as Texture2D;
+        if (texture2D == null)
+        {
+            Debug.LogWarning("[TilePatternController] Tile texture must be Texture2D.", this);
+            return;
+        }
+
+        TileTextureSwapper.TileTextureSet setData = new TileTextureSwapper.TileTextureSet
+        {
+            BaseMap = texture2D,
+            GapColor = defaultGapColor,
+            Rotation = angleSlider != null ? angleSlider.value : 0f,
+            GapSizeMM = spacingSlider != null ? spacingSlider.value : 2f,
+            AutoDetectFromBaseName = true
+        };
+
+        tileSwapper.SwapTextureSet(setData);
+
+        // If explicit tile dimensions are supplied by button data, prefer them.
+        TileButtonPair match = tileButtons.Find(tb => tb.texture == texture);
+        if (match != null && match.width > 0 && match.height > 0)
+            tileSwapper.SetTileSizeMM(match.width * 100f, match.height * 100f);
     }
 
 

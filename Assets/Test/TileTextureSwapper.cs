@@ -163,6 +163,13 @@ public class TileTextureSwapper : MonoBehaviour
         SetRotation(mat, rotation);
     }
 
+    // Sets tile size in millimeters (X = width, Y = height) and enables real-world mode.
+    public void SetTileSizeMM(float widthMM, float heightMM)
+    {
+        if (!TryGetTargetMaterial(out Material mat)) return;
+        SetTileSizeMM(mat, widthMM, heightMM);
+    }
+
     public static void ApplyTextureToMaterial(Material mat, Texture2D newTexture)
     {
         if (mat == null || newTexture == null) return;
@@ -240,6 +247,19 @@ public class TileTextureSwapper : MonoBehaviour
 
         float rot = Mathf.Clamp(rotation, 0f, 360f);
         mat.SetFloat("_Rotation", rot);
+    }
+
+    // Applies tile size in millimeters and switches shader scaling to real-world mode.
+    public static void SetTileSizeMM(Material mat, float widthMM, float heightMM)
+    {
+        if (mat == null || !mat.HasProperty("_TileSizeMM")) return;
+
+        float safeWidth = Mathf.Max(widthMM, 1f);
+        float safeHeight = Mathf.Max(heightMM, 1f);
+        mat.SetVector("_TileSizeMM", new Vector4(safeWidth, safeHeight, 0f, 0f));
+
+        if (mat.HasProperty("_UseRealWorldMM"))
+            mat.SetFloat("_UseRealWorldMM", 1f);
     }
 
     // Convenience API to apply all 3 layout controls together.
