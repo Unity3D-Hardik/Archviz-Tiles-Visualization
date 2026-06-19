@@ -7,11 +7,12 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Tile
-  m_Shader: {fileID: 4800000, guid: 1c88cb83bfe86384ab80f5a4d9b5d8eb, type: 3}
+  m_Name: Tiles
+  m_Shader: {fileID: 4800000, guid: a611e8ee481d6460a9efa519bd406cf2, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords: []
+  m_ValidKeywords:
+  - _CLEARCOAT
   m_InvalidKeywords:
   - _AUTOREADSIZEFROMTEXTURENAME_ON
   - _USEREALWORLDMM_ON
@@ -27,7 +28,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _BaseMap:
-        m_Texture: {fileID: 2800000, guid: 66980d538a1dc1d4492f31338fa05a58, type: 3}
+        m_Texture: {fileID: 2800000, guid: b34ab45840c6543dab699c3056a54f60, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
@@ -55,7 +56,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: 25a686e87daa08542a642c973926e2bf, type: 3}
+        m_Texture: {fileID: 2800000, guid: fd2e6d6dd11b147458f7a728465b0e89, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
@@ -98,25 +99,25 @@ Material:
     - _AutoReadSizeFromTextureName: 1
     - _Blend: 0
     - _BlendModePreserveSpecular: 1
-    - _BumpScale: 1
-    - _ClearCoat: 0
+    - _BumpScale: 0.7
+    - _ClearCoat: 1
     - _ClearCoatMask: 0
-    - _ClearCoatSmoothness: 0
+    - _ClearCoatSmoothness: 0.85
     - _Cull: 2
     - _Cutoff: 0.5
     - _DetailAlbedoMapScale: 1
-    - _DetailAlbedoStrength: 0
+    - _DetailAlbedoStrength: 0.3
     - _DetailNormalMapScale: 1
-    - _DetailNormalScale: 2
-    - _DetailSmoothnessStrength: 0
+    - _DetailNormalScale: 1
+    - _DetailSmoothnessStrength: 0.3
     - _DstBlend: 0
     - _DstBlendAlpha: 0
     - _EnvironmentReflections: 1
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
-    - _ImageHeight: 0.8
-    - _ImageWidth: 0.8
+    - _ImageHeight: 0.3
+    - _ImageWidth: 0.3
     - _Metallic: 0
     - _NormalStrength: 0.76
     - _OcclusionStrength: 1
@@ -124,10 +125,10 @@ Material:
     - _QueueOffset: 0
     - _ReceiveShadows: 1
     - _Rotation: 0
-    - _Smoothness: 0.5
+    - _Smoothness: 0.88
     - _SmoothnessTextureChannel: 0
-    - _SpacingX: 0
-    - _SpacingY: 0
+    - _SpacingX: 0.1
+    - _SpacingY: 0.1
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
@@ -138,10 +139,10 @@ Material:
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _DetailTiling: {r: 50, g: 50, b: 0, a: 0}
-    - _EmissionColor: {r: 1, g: 0, b: 0, a: 1}
-    - _GapColor: {r: 1, g: 0.23494492, b: 0, a: 1}
-    - _GapSizeMM: {r: 10, g: 10, b: 0, a: 0}
+    - _DetailTiling: {r: 6, g: 6, b: 0, a: 0}
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _GapColor: {r: 0.38679248, g: 0.38679248, b: 0.38679248, a: 1}
+    - _GapSizeMM: {r: 5, g: 5, b: 0, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
     - _TileSizeMM: {r: 1200, g: 1800, b: 0, a: 0}
   m_BuildTextureStacks: []
