@@ -6,10 +6,17 @@
 
 using System.Globalization;
 using System.Text.RegularExpressions;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class TileTextureSwapper : MonoBehaviour
 {
+    private struct GeneratedMapSet
+    {
+        public Texture2D NormalMap;
+        public Texture2D OcclusionMap;
+    }
+
     public struct FinishPreset
     {
         public string DisplayName;
@@ -61,6 +68,13 @@ public class TileTextureSwapper : MonoBehaviour
 
         // If true, parse BaseMap name for size + finish preset.
         public bool AutoDetectFromBaseName;
+
+        // If true and maps are missing, derive normal/occlusion maps from BaseMap.
+        public bool AutoGenerateMapsFromBase;
+        // Controls derived normal strength from luminance height gradients.
+        public float GeneratedNormalStrength;
+        // Controls derived AO amount from local contrast.
+        public float GeneratedOcclusionStrength;
     }
 
     public static readonly FinishPreset[] FinishPresets =
@@ -99,6 +113,7 @@ public class TileTextureSwapper : MonoBehaviour
     [SerializeField] private int materialIndex = 0;
 
     private Material cachedMaterial;
+    private static readonly Dictionary<int, GeneratedMapSet> GeneratedMapCache = new Dictionary<int, GeneratedMapSet>();
 
     private void Awake()
     {
@@ -194,6 +209,22 @@ public class TileTextureSwapper : MonoBehaviour
         SetTextureIfProvided(mat, "_EmissionMap", textureSet.EmissionMap);
         SetTextureIfProvided(mat, "_DetailMap", textureSet.DetailMap);
         SetTextureIfProvided(mat, "_DetailNormalMap", textureSet.DetailNormalMap);
+
+        if (textureSet.AutoGenerateMapsFromBase && textureSet.BaseMap != null)
+        {
+            float generatedNormalStrength = textureSet.GeneratedNormalStrength > 0f ? textureSet.GeneratedNormalStrength : 2.0f;
+            float generatedOcclusionStrength = textureSet.GeneratedOcclusionStrength > 0f ? textureSet.GeneratedOcclusionStrength : 1.25f;
+
+            if (TryGetOrCreateGeneratedMaps(textureSet.BaseMap, generatedNormalStrength, generatedOcclusionStrength, out GeneratedMapSet generated))
+            {
+                // If caller did not explicitly provide maps, auto-fill from BaseMap.
+                if (textureSet.NormalMap == null && generated.NormalMap != null && mat.HasProperty("_BumpMap"))
+                    mat.SetTexture("_BumpMap", generated.NormalMap);
+
+                if (textureSet.OcclusionMap == null && generated.OcclusionMap != null && mat.HasProperty("_OcclusionMap"))
+                    mat.SetTexture("_OcclusionMap", generated.OcclusionMap);
+            }
+        }
 
         SetFloatIfHasValue(mat, "_BumpScale", textureSet.BumpScale);
         SetFloatIfHasValue(mat, "_Smoothness", textureSet.Smoothness);
@@ -372,5 +403,162 @@ public class TileTextureSwapper : MonoBehaviour
     {
         if (mat == null || !value.HasValue || !mat.HasProperty(propertyName)) return;
         mat.SetColor(propertyName, value.Value);
+    }
+
+    private static bool TryGetOrCreateGeneratedMaps(Texture2D baseMap, float normalStrength, float occlusionStrength, out GeneratedMapSet generated)
+    {
+        generated = default;
+        if (baseMap == null) return false;
+
+        int key = ComputeDerivedKey(baseMap, normalStrength, occlusionStrength);
+        if (GeneratedMapCache.TryGetValue(key, out GeneratedMapSet cached) && cached.NormalMap != null && cached.OcclusionMap != null)
+        {
+            generated = cached;
+            return true;
+        }
+
+        if (!TryBuildGeneratedMaps(baseMap, normalStrength, occlusionStrength, out GeneratedMapSet built))
+            return false;
+
+        GeneratedMapCache[key] = built;
+        generated = built;
+        return true;
+    }
+
+    private static int ComputeDerivedKey(Texture2D baseMap, float normalStrength, float occlusionStrength)
+    {
+        int n = Mathf.RoundToInt(normalStrength * 100f);
+        int o = Mathf.RoundToInt(occlusionStrength * 100f);
+        unchecked
+        {
+            int hash = 17;
+            hash = hash * 31 + baseMap.GetInstanceID();
+            hash = hash * 31 + n;
+            hash = hash * 31 + o;
+            return hash;
+        }
+    }
+
+    private static bool TryBuildGeneratedMaps(Texture2D sourceBaseMap, float normalStrength, float occlusionStrength, out GeneratedMapSet generated)
+    {
+        generated = default;
+
+        if (!TryGetReadableTexture(sourceBaseMap, out Texture2D readable))
+            return false;
+
+        int width = readable.width;
+        int height = readable.height;
+        Color32[] srcPixels = readable.GetPixels32();
+        if (srcPixels == null || srcPixels.Length == 0)
+            return false;
+
+        float[] luma = new float[srcPixels.Length];
+        for (int i = 0; i < srcPixels.Length; i++)
+        {
+            Color32 c = srcPixels[i];
+            luma[i] = (0.2126f * (c.r / 255f)) + (0.7152f * (c.g / 255f)) + (0.0722f * (c.b / 255f));
+        }
+
+        Color32[] normalPixels = new Color32[srcPixels.Length];
+        Color32[] occlusionPixels = new Color32[srcPixels.Length];
+
+        float nScale = Mathf.Clamp(normalStrength, 0.01f, 10f);
+        float aoScale = Mathf.Clamp(occlusionStrength, 0.01f, 10f);
+
+        for (int y = 0; y < height; y++)
+        {
+            int yUp = (y + 1) % height;
+            int yDown = (y - 1 + height) % height;
+
+            for (int x = 0; x < width; x++)
+            {
+                int xRight = (x + 1) % width;
+                int xLeft = (x - 1 + width) % width;
+
+                int idx = y * width + x;
+                float hL = luma[y * width + xLeft];
+                float hR = luma[y * width + xRight];
+                float hD = luma[yDown * width + x];
+                float hU = luma[yUp * width + x];
+
+                float dx = (hR - hL) * nScale;
+                float dy = (hU - hD) * nScale;
+
+                Vector3 n = new Vector3(-dx, -dy, 1f).normalized;
+                byte nx = (byte)Mathf.Clamp(Mathf.RoundToInt((n.x * 0.5f + 0.5f) * 255f), 0, 255);
+                byte ny = (byte)Mathf.Clamp(Mathf.RoundToInt((n.y * 0.5f + 0.5f) * 255f), 0, 255);
+                byte nz = (byte)Mathf.Clamp(Mathf.RoundToInt((n.z * 0.5f + 0.5f) * 255f), 0, 255);
+                normalPixels[idx] = new Color32(nx, ny, nz, 255);
+
+                float contrast = Mathf.Abs(hR - hL) + Mathf.Abs(hU - hD);
+                float ao = Mathf.Clamp01(1f - contrast * aoScale);
+                byte aoByte = (byte)Mathf.Clamp(Mathf.RoundToInt(ao * 255f), 0, 255);
+                occlusionPixels[idx] = new Color32(aoByte, aoByte, aoByte, 255);
+            }
+        }
+
+        Texture2D normalMap = new Texture2D(width, height, TextureFormat.RGBA32, true, true)
+        {
+            name = sourceBaseMap.name + "_genNormal",
+            wrapMode = sourceBaseMap.wrapMode,
+            filterMode = sourceBaseMap.filterMode,
+            anisoLevel = sourceBaseMap.anisoLevel
+        };
+        normalMap.SetPixels32(normalPixels);
+        normalMap.Apply(true, false);
+
+        Texture2D occlusionMap = new Texture2D(width, height, TextureFormat.RGBA32, true, false)
+        {
+            name = sourceBaseMap.name + "_genOcclusion",
+            wrapMode = sourceBaseMap.wrapMode,
+            filterMode = sourceBaseMap.filterMode,
+            anisoLevel = sourceBaseMap.anisoLevel
+        };
+        occlusionMap.SetPixels32(occlusionPixels);
+        occlusionMap.Apply(true, false);
+
+        generated = new GeneratedMapSet
+        {
+            NormalMap = normalMap,
+            OcclusionMap = occlusionMap
+        };
+        return true;
+    }
+
+    private static bool TryGetReadableTexture(Texture2D source, out Texture2D readable)
+    {
+        readable = null;
+        if (source == null) return false;
+
+        try
+        {
+            source.GetPixel(0, 0);
+            readable = source;
+            return true;
+        }
+        catch
+        {
+            if (!SystemInfo.supports2DArrayTextures)
+            {
+                // No strict dependency here; keep fallback path simple.
+            }
+        }
+
+        RenderTexture rt = RenderTexture.GetTemporary(source.width, source.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+        RenderTexture previous = RenderTexture.active;
+
+        Graphics.Blit(source, rt);
+        RenderTexture.active = rt;
+
+        Texture2D copy = new Texture2D(source.width, source.height, TextureFormat.RGBA32, false, true);
+        copy.ReadPixels(new Rect(0, 0, source.width, source.height), 0, 0);
+        copy.Apply(false, false);
+        copy.name = source.name + "_readable";
+
+        RenderTexture.active = previous;
+        RenderTexture.ReleaseTemporary(rt);
+
+        readable = copy;
+        return true;
     }
 }

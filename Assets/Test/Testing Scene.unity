@@ -6970,6 +6970,53 @@ MonoBehaviour:
   occlusionStrength: 1
   emissionColor: {r: 0, g: 0, b: 0, a: 1}
   autoDetectFromBaseName: 1
+  fallbackToRuntimeGeneratedMaps: 1
+  generatedNormalStrength: 2
+  generatedOcclusionStrength: 1.25
+  useManualTextureSets: 1
+  manualTextureSets:
+  - baseMap: {fileID: 2800000, guid: 1c3424f9fd7194512833f66aefcb4236, type: 3}
+    normalMap: {fileID: 2800000, guid: 831b035851fa04400be1042908b0fac0, type: 3}
+    metallicMap: {fileID: 0}
+    occlusionMap: {fileID: 2800000, guid: 1f750385fae46483a9fba34c4e4d4ed4, type: 3}
+    emissionMap: {fileID: 0}
+    detailMap: {fileID: 0}
+    detailNormalMap: {fileID: 0}
+  - baseMap: {fileID: 2800000, guid: f93946d0871db49c4ad8c2a8728c4533, type: 3}
+    normalMap: {fileID: 2800000, guid: 12de86e4bf1c84970adf19e9a24253a1, type: 3}
+    metallicMap: {fileID: 0}
+    occlusionMap: {fileID: 2800000, guid: ee617a4f55e6c48a887b70246b0357c9, type: 3}
+    emissionMap: {fileID: 0}
+    detailMap: {fileID: 0}
+    detailNormalMap: {fileID: 0}
+  - baseMap: {fileID: 2800000, guid: 6b76df8bf1bdae44ab30ddcb355a9f98, type: 3}
+    normalMap: {fileID: 2800000, guid: 452256f5c8fb24b33bc3df9958c0772b, type: 3}
+    metallicMap: {fileID: 0}
+    occlusionMap: {fileID: 2800000, guid: 3ae48252c0d484b93acfe4ca1ffc6fe1, type: 3}
+    emissionMap: {fileID: 0}
+    detailMap: {fileID: 0}
+    detailNormalMap: {fileID: 0}
+  - baseMap: {fileID: 2800000, guid: ef0af4534c19e394d8096523fee693d1, type: 3}
+    normalMap: {fileID: 2800000, guid: bd87a76c81e7b4ef2bf52bca8d2a1e7b, type: 3}
+    metallicMap: {fileID: 0}
+    occlusionMap: {fileID: 2800000, guid: 3b7d19b07d5224a6ebc18b5d005ec4df, type: 3}
+    emissionMap: {fileID: 0}
+    detailMap: {fileID: 0}
+    detailNormalMap: {fileID: 0}
+  - baseMap: {fileID: 2800000, guid: fe27a8b67cef18d4b9dce3ebed8dd2bd, type: 3}
+    normalMap: {fileID: 2800000, guid: 172d80bd19fc14448b35d8dcdce7ff39, type: 3}
+    metallicMap: {fileID: 0}
+    occlusionMap: {fileID: 2800000, guid: 1bdfff27a94224660987cca9c475a649, type: 3}
+    emissionMap: {fileID: 0}
+    detailMap: {fileID: 0}
+    detailNormalMap: {fileID: 0}
+  - baseMap: {fileID: 2800000, guid: 5d378372bc073d440918ef5bfdef1c91, type: 3}
+    normalMap: {fileID: 2800000, guid: 4b1088af2e59b484686dacebb0eb52a6, type: 3}
+    metallicMap: {fileID: 0}
+    occlusionMap: {fileID: 2800000, guid: 51835a1e2fa384f6f882abeebf4edc88, type: 3}
+    emissionMap: {fileID: 0}
+    detailMap: {fileID: 0}
+    detailNormalMap: {fileID: 0}
   TestbaseMap:
   - {fileID: 2800000, guid: 1c3424f9fd7194512833f66aefcb4236, type: 3}
   - {fileID: 2800000, guid: f93946d0871db49c4ad8c2a8728c4533, type: 3}
