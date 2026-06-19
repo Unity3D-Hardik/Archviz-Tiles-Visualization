@@ -5,18 +5,6 @@ using UnityEngine;
 public class TileRuntimeSetExample : MonoBehaviour
 {
     [Serializable]
-    private class DerivedMapBinding
-    {
-        public Texture2D baseMap;
-        public Texture2D normalMap;
-        public Texture2D metallicMap;
-        public Texture2D occlusionMap;
-        public Texture2D emissionMap;
-        public Texture2D detailMap;
-        public Texture2D detailNormalMap;
-    }
-
-    [Serializable]
     public class ManualTextureSet
     {
         public Texture2D baseMap;
@@ -39,13 +27,6 @@ public class TileRuntimeSetExample : MonoBehaviour
     [SerializeField] private Texture2D emissionMap;
     [SerializeField] private Texture2D detailMap;
     [SerializeField] private Texture2D detailNormalMap;
-
-    [Header("Auto Map Assignment")]
-    [SerializeField] private bool useDerivedMapBindings = true;
-    [SerializeField] private List<DerivedMapBinding> derivedMapBindings = new();
-    [SerializeField] private bool autoAssignGeneratedMapsByName = true;
-    [SerializeField] private bool clearMissingGeneratedMaps = true;
-    [SerializeField] private Texture2D[] generatedMapsPool;
 
     [Header("Layout Controls")]
     [SerializeField] [Range(0f, 20f)] private float gapSizeMM = 2f;
@@ -98,7 +79,6 @@ public class TileRuntimeSetExample : MonoBehaviour
             return;
 
         baseMap = texture;
-        ResolveMapsForBase(baseMap);
         ApplyFullSet();
     }
 
@@ -163,79 +143,6 @@ public class TileRuntimeSetExample : MonoBehaviour
     {
         if (tileSwapper != null)
             tileSwapper.SetTileSizeMM(widthMM, heightMM);
-    }
-
-    private void ResolveMapsForBase(Texture2D selectedBaseMap)
-    {
-        if (selectedBaseMap == null) return;
-
-        if (useDerivedMapBindings && TryGetDerivedBinding(selectedBaseMap, out DerivedMapBinding binding))
-        {
-            normalMap = binding.normalMap;
-            metallicMap = binding.metallicMap;
-            occlusionMap = binding.occlusionMap;
-            emissionMap = binding.emissionMap;
-            detailMap = binding.detailMap;
-            detailNormalMap = binding.detailNormalMap;
-            return;
-        }
-
-        if (!autoAssignGeneratedMapsByName)
-            return;
-
-        Texture2D foundNormal = FindGeneratedMap(selectedBaseMap.name, "_Normal");
-        Texture2D foundOcclusion = FindGeneratedMap(selectedBaseMap.name, "_Occlusion");
-        Texture2D foundMetallic = FindGeneratedMap(selectedBaseMap.name, "_Metallic");
-        Texture2D foundEmission = FindGeneratedMap(selectedBaseMap.name, "_Emission");
-        Texture2D foundDetail = FindGeneratedMap(selectedBaseMap.name, "_Detail");
-        Texture2D foundDetailNormal = FindGeneratedMap(selectedBaseMap.name, "_DetailNormal");
-
-        normalMap = foundNormal != null ? foundNormal : (clearMissingGeneratedMaps ? null : normalMap);
-        occlusionMap = foundOcclusion != null ? foundOcclusion : (clearMissingGeneratedMaps ? null : occlusionMap);
-        metallicMap = foundMetallic != null ? foundMetallic : (clearMissingGeneratedMaps ? null : metallicMap);
-        emissionMap = foundEmission != null ? foundEmission : (clearMissingGeneratedMaps ? null : emissionMap);
-        detailMap = foundDetail != null ? foundDetail : (clearMissingGeneratedMaps ? null : detailMap);
-        detailNormalMap = foundDetailNormal != null ? foundDetailNormal : (clearMissingGeneratedMaps ? null : detailNormalMap);
-    }
-
-    private bool TryGetDerivedBinding(Texture2D selectedBaseMap, out DerivedMapBinding binding)
-    {
-        binding = null;
-        if (selectedBaseMap == null || derivedMapBindings == null || derivedMapBindings.Count == 0)
-            return false;
-
-        for (int i = 0; i < derivedMapBindings.Count; i++)
-        {
-            DerivedMapBinding candidate = derivedMapBindings[i];
-            if (candidate == null || candidate.baseMap == null)
-                continue;
-
-            if (candidate.baseMap == selectedBaseMap)
-            {
-                binding = candidate;
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private Texture2D FindGeneratedMap(string baseName, string suffix)
-    {
-        if (generatedMapsPool == null || generatedMapsPool.Length == 0)
-            return null;
-
-        string expected = baseName + suffix;
-        for (int i = 0; i < generatedMapsPool.Length; i++)
-        {
-            Texture2D tex = generatedMapsPool[i];
-            if (tex == null) continue;
-
-            if (string.Equals(tex.name, expected, StringComparison.OrdinalIgnoreCase))
-                return tex;
-        }
-
-        return null;
     }
 
     private bool TryApplyManualTextureSet(int index)
