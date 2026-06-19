@@ -171,6 +171,71 @@ public class TileRuntimeSetExample : MonoBehaviour
         SetRotation(value);
     }
 
+    public void OnGapColorHexButtonClicked(string hexColor)
+    {
+        if (string.IsNullOrWhiteSpace(hexColor))
+            return;
+
+        if (TryParseColorFromButtonValue(hexColor, out Color parsedColor))
+            SetGapColor(parsedColor);
+        else
+            Debug.LogWarning($"[TileRuntimeSetExample] Invalid color value '{hexColor}'. Use formats like #RRGGBB, RRGGBB, #RRGGBBAA, RGB(255,170,0), or 255,170,0.", this);
+    }
+
+    public void OnGapColorRgbButtonClicked(float r, float g, float b, float a = 1f)
+    {
+        SetGapColor(new Color(r, g, b, a));
+    }
+
+    private static bool TryParseColorFromButtonValue(string rawValue, out Color parsedColor)
+    {
+        parsedColor = Color.black;
+        if (string.IsNullOrWhiteSpace(rawValue))
+            return false;
+
+        string value = rawValue.Trim();
+
+        if (ColorUtility.TryParseHtmlString(value, out parsedColor))
+            return true;
+
+        if (!value.StartsWith("#", StringComparison.Ordinal))
+        {
+            if (ColorUtility.TryParseHtmlString("#" + value, out parsedColor))
+                return true;
+        }
+
+        // Supports formats like "RGB(255,170,0)", "255,170,0", and "1,0.66,0".
+        string normalized = value.Replace("RGB(", "", StringComparison.OrdinalIgnoreCase)
+            .Replace("RGBA(", "", StringComparison.OrdinalIgnoreCase)
+            .Replace("(", string.Empty, StringComparison.Ordinal)
+            .Replace(")", string.Empty, StringComparison.Ordinal);
+
+        string[] parts = normalized.Split(',');
+        if (parts.Length != 3 && parts.Length != 4)
+            return false;
+
+        if (!float.TryParse(parts[0].Trim(), out float r) ||
+            !float.TryParse(parts[1].Trim(), out float g) ||
+            !float.TryParse(parts[2].Trim(), out float b))
+            return false;
+
+        float a = 1f;
+        if (parts.Length == 4 && !float.TryParse(parts[3].Trim(), out a))
+            return false;
+
+        bool usesByteRange = r > 1f || g > 1f || b > 1f || a > 1f;
+        if (usesByteRange)
+        {
+            r /= 255f;
+            g /= 255f;
+            b /= 255f;
+            a /= 255f;
+        }
+
+        parsedColor = new Color(Mathf.Clamp01(r), Mathf.Clamp01(g), Mathf.Clamp01(b), Mathf.Clamp01(a));
+        return true;
+    }
+
     private void RegisterSliderCallbacks()
     {
         if (groutSizeSlider != null)
