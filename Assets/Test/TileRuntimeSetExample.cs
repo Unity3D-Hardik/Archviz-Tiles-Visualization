@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class TileRuntimeSetExample : MonoBehaviour
 {
@@ -33,6 +34,10 @@ public class TileRuntimeSetExample : MonoBehaviour
     [SerializeField] private Color gapColor = Color.black;
     [SerializeField] [Range(0f, 360f)] private float rotation;
 
+    [Header("UI Sliders")]
+    public Slider groutSizeSlider;
+    public Slider rotationSlider;
+
     [Header("PBR Overrides (Optional)")]
     [SerializeField] private bool overridePbrValues;
     [SerializeField] [Range(0f, 2f)] private float bumpScale = 1f;
@@ -57,6 +62,17 @@ public class TileRuntimeSetExample : MonoBehaviour
     {
         if (tileSwapper == null)
             tileSwapper = GetComponent<TileTextureSwapper>();
+    }
+
+    private void OnEnable()
+    {
+        RegisterSliderCallbacks();
+        SyncSliderValues();
+    }
+
+    private void OnDisable()
+    {
+        UnregisterSliderCallbacks();
     }
 
     public void SetTexture(int index)
@@ -143,6 +159,49 @@ public class TileRuntimeSetExample : MonoBehaviour
     {
         if (tileSwapper != null)
             tileSwapper.SetTileSizeMM(widthMM, heightMM);
+    }
+
+    public void OnGroutSizeSliderChanged(float value)
+    {
+        SetGapSize(value);
+    }
+
+    public void OnRotationSliderChanged(float value)
+    {
+        SetRotation(value);
+    }
+
+    private void RegisterSliderCallbacks()
+    {
+        if (groutSizeSlider != null)
+        {
+            groutSizeSlider.onValueChanged.RemoveListener(OnGroutSizeSliderChanged);
+            groutSizeSlider.onValueChanged.AddListener(OnGroutSizeSliderChanged);
+        }
+
+        if (rotationSlider != null)
+        {
+            rotationSlider.onValueChanged.RemoveListener(OnRotationSliderChanged);
+            rotationSlider.onValueChanged.AddListener(OnRotationSliderChanged);
+        }
+    }
+
+    private void UnregisterSliderCallbacks()
+    {
+        if (groutSizeSlider != null)
+            groutSizeSlider.onValueChanged.RemoveListener(OnGroutSizeSliderChanged);
+
+        if (rotationSlider != null)
+            rotationSlider.onValueChanged.RemoveListener(OnRotationSliderChanged);
+    }
+
+    private void SyncSliderValues()
+    {
+        if (groutSizeSlider != null)
+            groutSizeSlider.SetValueWithoutNotify(gapSizeMM);
+
+        if (rotationSlider != null)
+            rotationSlider.SetValueWithoutNotify(rotation);
     }
 
     private bool TryApplyManualTextureSet(int index)
