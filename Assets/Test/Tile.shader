@@ -113,6 +113,7 @@ Shader "Aimision/Tile_URP"
             // _SCREEN_SPACE_OCCLUSION, _FORWARD_PLUS, _LIGHT_COOKIES, _LIGHT_LAYERS omitted — not supported / not beneficial on Quest Adreno GPU
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
+            #pragma instancing_options nomatrices renderinglayer
             #pragma prefer_hlslcc gles
             // Exclude only pure-console targets; keep d3d11/vulkan for PC editor testing
             #pragma exclude_renderers xboxone ps4 ps5
@@ -190,7 +191,9 @@ Shader "Aimision/Tile_URP"
             {
                 Varyings output;
                 UNITY_SETUP_INSTANCE_ID(input);
+                #ifndef STEREO_INSTANCING_ON
                 UNITY_TRANSFER_INSTANCE_ID(input, output);
+                #endif
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
                 VertexPositionInputs posInputs = GetVertexPositionInputs(input.positionOS.xyz);
