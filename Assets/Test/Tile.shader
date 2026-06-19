@@ -5,6 +5,10 @@ Shader "Aimision/Tile_URP"
         [MainTexture] _BaseMap("Base Map", 2D) = "white" {}
         [MainColor] _BaseColor("Base Color", Color) = (1,1,1,1)
         _GapColor("Gap Color", Color) = (0,0,0,1)
+        _GroutSmoothness("Grout Smoothness", Range(0.0, 1.0)) = 0.08
+        _GroutOcclusion("Grout Occlusion", Range(0.0, 1.0)) = 0.85
+        _TileEdgeDarkening("Tile Edge Darkening", Range(0.0, 1.0)) = 0.12
+        _TileEdgeWidth("Tile Edge Width", Range(0.0, 0.2)) = 0.03
 
         [Toggle(_ALPHATEST_ON)] _AlphaClip("Alpha Clipping", Float) = 0
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
@@ -157,6 +161,10 @@ Shader "Aimision/Tile_URP"
                 float4 _BaseColor;
                 float4 _GapColor;
                 float4 _EmissionColor;
+                float _GroutSmoothness;
+                float _GroutOcclusion;
+                float _TileEdgeDarkening;
+                float _TileEdgeWidth;
                 float _Cutoff;
                 float _Metallic;
                 float _Smoothness;
@@ -250,7 +258,13 @@ Shader "Aimision/Tile_URP"
                 float2 imageUV = float2(localPos.x / imageWidth, localPos.y / imageHeight);
                 float2 uv = TRANSFORM_TEX(imageUV, _BaseMap);
 
+                // Subtle edge darkening inside each tile improves perceived depth.
+                float edgeMin = min(min(imageUV.x, imageUV.y), min(1.0 - imageUV.x, 1.0 - imageUV.y));
+                float edgeWidth = max(_TileEdgeWidth, 0.0001);
+                half edgeMask = saturate(1.0h - (half)(edgeMin / edgeWidth));
+
                 half4 baseSample = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv) * _BaseColor;
+                baseSample.rgb = baseSample.rgb * (1.0h - edgeMask * (half)_TileEdgeDarkening);
                 half4 albedoAlpha = lerp(_GapColor, baseSample, tileMask);
 
                 #if defined(_ALPHATEST_ON)
@@ -270,7 +284,7 @@ Shader "Aimision/Tile_URP"
                     float2 detailUV = uv * _DetailTiling.xy;
                     half4 detailTex = SAMPLE_TEXTURE2D(_DetailMap, sampler_DetailMap, detailUV);
                     half3 detailAlbedo = detailTex.rgb * 2.0h - 1.0h;
-                    albedoAlpha.rgb = saturate(albedoAlpha.rgb * (1.0h + detailAlbedo * (half)_DetailAlbedoStrength));
+                    albedoAlpha.rgb = saturate(albedoAlpha.rgb * (1.0h + detailAlbedo * (half)_DetailAlbedoStrength * tileMask));
                     smoothness = saturate(smoothness + (detailTex.a - 0.5h) * 2.0h * (half)_DetailSmoothnessStrength);
                 #endif
 
@@ -292,7 +306,7 @@ Shader "Aimision/Tile_URP"
                 // Branchless gap surface reset — lerp to flat/non-reflective grout when in gap
                 half3 flatNormalWS = normalize(input.normalWS);
                 metallic   = metallic   * tileMask;
-                smoothness = smoothness * tileMask;
+                smoothness = lerp((half)_GroutSmoothness, smoothness, tileMask);
                 normalWS   = lerp(flatNormalWS, normalWS, tileMask);
 
                 half occlusion = 1.0h;
@@ -300,11 +314,13 @@ Shader "Aimision/Tile_URP"
                     half occTex = SAMPLE_TEXTURE2D(_OcclusionMap, sampler_OcclusionMap, uv).g;
                     occlusion = LerpWhiteTo(occTex, _OcclusionStrength);
                 #endif
+                occlusion = lerp((half)_GroutOcclusion, occlusion, tileMask);
 
                 half3 emission = 0;
                 #if defined(_EMISSION)
                     emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, uv).rgb * _EmissionColor.rgb;
                 #endif
+                emission *= tileMask;
 
                 InputData inputData = (InputData)0;
                 inputData.positionWS = input.positionWS;
