@@ -11,8 +11,7 @@ Material:
   m_Shader: {fileID: 4800000, guid: a611e8ee481d6460a9efa519bd406cf2, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords:
-  - _CLEARCOAT
+  m_ValidKeywords: []
   m_InvalidKeywords:
   - _AUTOREADSIZEFROMTEXTURENAME_ON
   - _USEREALWORLDMM_ON
@@ -28,7 +27,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _BaseMap:
-        m_Texture: {fileID: 2800000, guid: b34ab45840c6543dab699c3056a54f60, type: 3}
+        m_Texture: {fileID: 2800000, guid: fe27a8b67cef18d4b9dce3ebed8dd2bd, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
@@ -99,10 +98,10 @@ Material:
     - _AutoReadSizeFromTextureName: 1
     - _Blend: 0
     - _BlendModePreserveSpecular: 1
-    - _BumpScale: 0.7
-    - _ClearCoat: 1
+    - _BumpScale: 1
+    - _ClearCoat: 0
     - _ClearCoatMask: 0
-    - _ClearCoatSmoothness: 0.85
+    - _ClearCoatSmoothness: 0
     - _Cull: 2
     - _Cutoff: 0.5
     - _DetailAlbedoMapScale: 1
@@ -125,7 +124,7 @@ Material:
     - _QueueOffset: 0
     - _ReceiveShadows: 1
     - _Rotation: 0
-    - _Smoothness: 0.88
+    - _Smoothness: 0.25
     - _SmoothnessTextureChannel: 0
     - _SpacingX: 0.1
     - _SpacingY: 0.1
@@ -144,7 +143,7 @@ Material:
     - _GapColor: {r: 0.38679248, g: 0.38679248, b: 0.38679248, a: 1}
     - _GapSizeMM: {r: 5, g: 5, b: 0, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
-    - _TileSizeMM: {r: 1200, g: 1800, b: 0, a: 0}
+    - _TileSizeMM: {r: 1200, g: 200, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!114 &5856988108520239705
