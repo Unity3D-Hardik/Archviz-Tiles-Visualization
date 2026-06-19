@@ -407,6 +407,8 @@ Shader "Aimision/Tile_URP"
             #pragma fragment fragMobile
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma prefer_hlslcc gles
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
@@ -417,6 +419,7 @@ Shader "Aimision/Tile_URP"
                 float4 positionOS : POSITION;
                 float3 normalOS : NORMAL;
                 float2 uv : TEXCOORD0;
+                float2 staticLightmapUV : TEXCOORD1;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -427,6 +430,7 @@ Shader "Aimision/Tile_URP"
                 float3 normalWS : TEXCOORD1;
                 float2 uv : TEXCOORD2;
                 half fogFactor : TEXCOORD3;
+                DECLARE_LIGHTMAP_OR_SH(staticLightmapUV, vertexSH, 4);
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
@@ -460,6 +464,9 @@ Shader "Aimision/Tile_URP"
                 output.normalWS = normInputs.normalWS;
                 output.uv = input.uv;
                 output.fogFactor = ComputeFogFactor(posInputs.positionCS.z);
+
+                OUTPUT_LIGHTMAP_UV(input.staticLightmapUV, unity_LightmapST, output.staticLightmapUV);
+                OUTPUT_SH(output.normalWS.xyz, output.vertexSH);
                 return output;
             }
 
@@ -505,12 +512,12 @@ Shader "Aimision/Tile_URP"
                 half4 albedoAlpha = lerp(_GapColor, baseSample, tileMask);
 
                 half3 n = normalize(input.normalWS);
-                Light mainLight = GetMainLight();
-                half ndotl = saturate(dot(n, mainLight.direction));
-                half3 ambient = SampleSH(n);
-                half3 lit = albedoAlpha.rgb * (ambient + ndotl * mainLight.color);
 
-                half4 color = half4(lit, albedoAlpha.a);
+                // Baked lighting-friendly shading: supports lightmaps and SH.
+                half3 bakedGI = SAMPLE_GI(input.staticLightmapUV, input.vertexSH, n);
+                half3 lit = albedoAlpha.rgb * max(bakedGI, half3(0.12h, 0.12h, 0.12h));
+
+                half4 color = half4(saturate(lit), albedoAlpha.a);
                 color.rgb = MixFog(color.rgb, input.fogFactor);
                 return color;
             }
