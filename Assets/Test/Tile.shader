@@ -113,7 +113,7 @@ Shader "Aimision/Tile_URP"
             // _SCREEN_SPACE_OCCLUSION, _FORWARD_PLUS, _LIGHT_COOKIES, _LIGHT_LAYERS omitted — not supported / not beneficial on Quest Adreno GPU
             #pragma multi_compile_fog
             #pragma multi_compile_instancing
-            #pragma instancing_options nomatrices renderinglayer
+            #pragma instancing_options nomatrices
             #pragma prefer_hlslcc gles
             // Exclude only pure-console targets; keep d3d11/vulkan for PC editor testing
             #pragma exclude_renderers xboxone ps4 ps5
@@ -146,6 +146,7 @@ Shader "Aimision/Tile_URP"
 #ifdef DYNAMICLIGHTMAP_ON
                 float2 dynamicLightmapUV : TEXCOORD8;
 #endif
+                UNITY_VERTEX_INPUT_INSTANCE_ID
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
@@ -191,9 +192,7 @@ Shader "Aimision/Tile_URP"
             {
                 Varyings output;
                 UNITY_SETUP_INSTANCE_ID(input);
-                #ifndef STEREO_INSTANCING_ON
                 UNITY_TRANSFER_INSTANCE_ID(input, output);
-                #endif
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
                 VertexPositionInputs posInputs = GetVertexPositionInputs(input.positionOS.xyz);
@@ -221,6 +220,7 @@ Shader "Aimision/Tile_URP"
 
             half4 frag(Varyings input) : SV_Target
             {
+                UNITY_SETUP_INSTANCE_ID(input);
                 // Required for Quest single-pass instanced stereo — must be first line
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
