@@ -20,13 +20,13 @@ public class TileRuntimeSetExample : MonoBehaviour
     [SerializeField] private TileTextureSwapper tileSwapper;
 
     [Header("Texture Set")]
-    [SerializeField] private Texture2D baseMap;
-    [SerializeField] private Texture2D normalMap;
-    [SerializeField] private Texture2D metallicMap;
-    [SerializeField] private Texture2D occlusionMap;
-    [SerializeField] private Texture2D emissionMap;
-    [SerializeField] private Texture2D detailMap;
-    [SerializeField] private Texture2D detailNormalMap;
+    private Texture2D baseMap;
+    private Texture2D normalMap;
+    private Texture2D metallicMap;
+    private Texture2D occlusionMap;
+    private Texture2D emissionMap;
+    private Texture2D detailMap;
+    private Texture2D detailNormalMap;
 
     [Header("Layout Controls")]
     [SerializeField] [Range(0f, 20f)] private float gapSizeMM = 2f;
