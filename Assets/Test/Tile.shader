@@ -380,6 +380,144 @@ Shader "Aimision/Tile_URP"
         UsePass "Universal Render Pipeline/Lit/Universal2D"
     }
 
-    FallBack "Hidden/Universal Render Pipeline/FallbackError"
+    // Mobile-safe fallback for Quest / Android when the full PBR pass variant fails.
+    SubShader
+    {
+        Tags
+        {
+            "RenderType" = "Opaque"
+            "Queue" = "Geometry"
+            "RenderPipeline" = "UniversalPipeline"
+            "UniversalMaterialType" = "Lit"
+            "IgnoreProjector" = "True"
+        }
+
+        Pass
+        {
+            Name "ForwardLitMobile"
+            Tags { "LightMode" = "UniversalForward" }
+
+            Blend[_SrcBlend][_DstBlend]
+            ZWrite[_ZWrite]
+            Cull[_Cull]
+
+            HLSLPROGRAM
+            #pragma target 2.0
+            #pragma vertex vertMobile
+            #pragma fragment fragMobile
+            #pragma multi_compile_fog
+            #pragma multi_compile_instancing
+            #pragma prefer_hlslcc gles
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+
+            struct AttributesMobile
+            {
+                float4 positionOS : POSITION;
+                float3 normalOS : NORMAL;
+                float2 uv : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            struct VaryingsMobile
+            {
+                float4 positionCS : SV_POSITION;
+                float3 positionWS : TEXCOORD0;
+                float3 normalWS : TEXCOORD1;
+                float2 uv : TEXCOORD2;
+                half fogFactor : TEXCOORD3;
+                UNITY_VERTEX_OUTPUT_STEREO
+            };
+
+            TEXTURE2D(_BaseMap); SAMPLER(sampler_BaseMap);
+
+            CBUFFER_START(UnityPerMaterial)
+                float4 _BaseMap_ST;
+                float4 _BaseColor;
+                float4 _GapColor;
+                float _UseRealWorldMM;
+                float4 _TileSizeMM;
+                float4 _GapSizeMM;
+                float _ImageWidth;
+                float _ImageHeight;
+                float _SpacingX;
+                float _SpacingY;
+                float _Rotation;
+            CBUFFER_END
+
+            VaryingsMobile vertMobile(AttributesMobile input)
+            {
+                VaryingsMobile output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+                VertexPositionInputs posInputs = GetVertexPositionInputs(input.positionOS.xyz);
+                VertexNormalInputs normInputs = GetVertexNormalInputs(input.normalOS, float4(1, 0, 0, 1));
+
+                output.positionCS = posInputs.positionCS;
+                output.positionWS = posInputs.positionWS;
+                output.normalWS = normInputs.normalWS;
+                output.uv = input.uv;
+                output.fogFactor = ComputeFogFactor(posInputs.positionCS.z);
+                return output;
+            }
+
+            half4 fragMobile(VaryingsMobile input) : SV_Target
+            {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+                float useMM = step(0.5, _UseRealWorldMM);
+                const float mmToMeter = 0.001;
+
+                float imageWidthMM = max(_TileSizeMM.x * mmToMeter, 0.0001);
+                float imageHeightMM = max(_TileSizeMM.y * mmToMeter, 0.0001);
+                float gapXMM = _GapSizeMM.x * mmToMeter;
+                float gapYMM = _GapSizeMM.y * mmToMeter;
+
+                float imageWidth = lerp(max(_ImageWidth, 0.0001), imageWidthMM, useMM);
+                float imageHeight = lerp(max(_ImageHeight, 0.0001), imageHeightMM, useMM);
+                float gapX = lerp(_SpacingX / 10.0, gapXMM, useMM);
+                float gapY = lerp(_SpacingY / 10.0, gapYMM, useMM);
+
+                float cellWidth = max(imageWidth + gapX, 0.0001);
+                float cellHeight = max(imageHeight + gapY, 0.0001);
+
+                float angle = radians(_Rotation);
+                float s = sin(angle);
+                float c = cos(angle);
+
+                float2 rotatedWorldPos = float2(
+                    input.positionWS.x * c - input.positionWS.z * s,
+                    input.positionWS.x * s + input.positionWS.z * c
+                );
+
+                float2 localPos;
+                localPos.x = frac(rotatedWorldPos.x / cellWidth) * cellWidth;
+                localPos.y = frac(rotatedWorldPos.y / cellHeight) * cellHeight;
+
+                half tileMask = step(localPos.x, (half)imageWidth) * step(localPos.y, (half)imageHeight);
+
+                float2 imageUV = float2(localPos.x / imageWidth, localPos.y / imageHeight);
+                float2 uv = TRANSFORM_TEX(imageUV, _BaseMap);
+
+                half4 baseSample = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv) * _BaseColor;
+                half4 albedoAlpha = lerp(_GapColor, baseSample, tileMask);
+
+                half3 n = normalize(input.normalWS);
+                Light mainLight = GetMainLight();
+                half ndotl = saturate(dot(n, mainLight.direction));
+                half3 ambient = SampleSH(n);
+                half3 lit = albedoAlpha.rgb * (ambient + ndotl * mainLight.color);
+
+                half4 color = half4(lit, albedoAlpha.a);
+                color.rgb = MixFog(color.rgb, input.fogFactor);
+                return color;
+            }
+            ENDHLSL
+        }
+    }
+
+    FallBack "Universal Render Pipeline/Lit"
     CustomEditor "TileShaderGUI"
 }
