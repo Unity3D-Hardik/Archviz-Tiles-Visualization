@@ -49,9 +49,9 @@ public class DynamicShadowPlane : MonoBehaviour
             meshFilter = gameObject.AddComponent<MeshFilter>();
 
         // Create plane mesh if needed
-        if (meshFilter.mesh == null || meshFilter.mesh.vertices.Length == 0)
+        if (meshFilter.sharedMesh == null || meshFilter.sharedMesh.vertices.Length == 0)
         {
-            meshFilter.mesh = CreatePlaneMesh();
+            meshFilter.sharedMesh = CreatePlaneMesh();
         }
 
         // Create material with DynamicShadow shader
@@ -59,7 +59,7 @@ public class DynamicShadowPlane : MonoBehaviour
         if (shader != null)
         {
             shadowMaterial = new Material(shader);
-            meshRenderer.material = shadowMaterial;
+            meshRenderer.sharedMaterial = shadowMaterial;
             meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             Debug.Log("DynamicShadow initialized on: " + gameObject.name);
         }
@@ -103,7 +103,7 @@ public class DynamicShadowPlane : MonoBehaviour
                 meshRenderer = GetComponent<MeshRenderer>();
 
             if (meshRenderer != null)
-                shadowMaterial = meshRenderer.material;
+                shadowMaterial = meshRenderer.sharedMaterial;
         }
 
         if (shadowMaterial != null)
